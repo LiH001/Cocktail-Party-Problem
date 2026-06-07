@@ -1,0 +1,127 @@
+\section{实验结果与评估}
+
+\subsection{训练设置与日志分析}
+
+Easy 和 Hard 模型均使用 \texttt{train\_deep\_clustering.py} 训练。主要参数保持一致：
+
+\begin{itemize}
+    \item 训练轮数：200 epochs；
+    \item batch size：4；
+    \item 优化器：Adam；
+    \item 学习率：$1\times 10^{-3}$；
+    \item BLSTM hidden size：300；
+    \item LSTM 层数：2；
+    \item STFT 参数：\texttt{n\_fft=512}，\texttt{hop\_length=128}；
+    \item 损失权重：\texttt{dc-loss-weight=0.0}，\texttt{mask-loss-weight=1.0}。
+\end{itemize}
+
+Easy 日志文件为 \texttt{deep\_clustering\_easy\_20260606\_144753.csv}，验证集最佳记录出现在第 100 个 epoch：\texttt{SDR\_in=-0.013 dB}，\texttt{SDR\_out=6.953 dB}，\texttt{Delta\_SDR=6.966 dB}。
+
+Hard 日志文件为 \texttt{deep\_clustering\_hard\_20260604\_214512.csv}，验证集最佳记录出现在第 165 个 epoch：\texttt{SDR\_in=-0.933 dB}，\texttt{SDR\_out=1.617 dB}，\texttt{Delta\_SDR=2.549 dB}。
+
+图 \ref{fig:results_training_curves} 展示了 Easy 与 Hard 的训练 loss 和验证指标变化。两组实验的训练 loss 都随 epoch 增加而下降，说明模型能够逐步拟合训练样本。Easy 验证集指标整体高于 Hard，说明在无噪声、说话人池较小、混合比例不完全均衡的条件下，模型更容易学习稳定的分离规律。Hard 验证集受真实环境噪声、说话人数量增加和 0.5:0.5 强重叠影响，验证指标提升更困难。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{results_training_curves_easy_hard.png}
+    \caption{Easy 与 Hard 模型训练 loss 和验证 SI-SDR 曲线}
+    \label{fig:results_training_curves}
+\end{figure}
+
+\subsection{整体评估结果}
+
+表 \ref{tab:metrics_summary} 和图 \ref{fig:metrics_summary} 汇总了 Easy 与 Hard 两组实验在验证集和精选展示样例上的指标。其中 selected 表示从验证集中选择的 3 个展示样例，valid all 表示完整验证集平均结果。
+
+\begin{table}[H]
+    \centering
+    \caption{Easy 与 Hard 实验 SI-SDR 结果}
+    \label{tab:metrics_summary}
+    \begin{tabular}{lccc}
+        \toprule
+        数据范围 & SDR\_in / dB & SDR\_out / dB & Delta\_SDR / dB \\
+        \midrule
+        Easy selected & -0.022 & 12.803 & 12.825 \\
+        Easy valid all & -0.013 & 6.953 & 6.966 \\
+        Hard selected & -0.884 & 9.835 & 10.719 \\
+        Hard valid all & -0.933 & 1.617 & 2.549 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{results_metrics_summary.png}
+    \caption{Easy 与 Hard 验证集和展示样例 SI-SDR 指标热力矩阵}
+    \label{fig:metrics_summary}
+\end{figure}
+
+从完整验证集平均结果看，Easy 实验的 \texttt{Delta\_SDR=6.966 dB}，明显超过 3 dB 改善标准，说明模型在简单双说话人混合条件下能够有效提升语音质量。Hard 实验完整验证集的 \texttt{Delta\_SDR=2.549 dB}，略低于 3 dB，但仍相比分离前有正向改善。该下降符合预期，因为 Hard 同时增加了说话人数、提高了两人语音能量重叠程度，并加入 ESC-50 真实环境噪声。
+
+\subsection{展示样例结果}
+
+为了在报告和 GUI 中直观展示分离效果，实验从验证集中选择 \texttt{SDR\_out} 较高的样例生成 demo 音频。Easy 的三个展示样例均达到约 13 dB 的 \texttt{SDR\_out}；Hard 的展示样例虽然来自困难条件，但最优样例也能达到 10 dB 以上的 \texttt{SDR\_out}。
+
+以 Easy 的第 1 个展示样例为例，分离前混合语音 \texttt{SDR\_in=0.060 dB}，分离后 \texttt{SDR\_out=13.701 dB}，提升 \texttt{13.640 dB}。图 \ref{fig:audio_vis} 展示了混合语音和两路分离语音的波形与频谱。分离结果在时频结构上更接近单一说话人，频谱重叠区域被模型分配到不同输出通道中。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{results_easy_case_visualization.png}
+    \caption{Easy case 01 的波形与频谱可视化}
+    \label{fig:audio_vis}
+\end{figure}
+
+Hard 的第 1 个展示样例是 Hard 验证集中分离效果较好的样本，分离前 \texttt{SDR\_in=-0.666 dB}，分离后 \texttt{SDR\_out=10.624 dB}，提升 \texttt{11.290 dB}。图 \ref{fig:hard_audio_vis} 展示了该样例的波形与频谱。可以看到，虽然 Hard 场景包含真实环境噪声和更强语音重叠，但在部分验证样本上模型仍能得到较清晰的两路输出。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{results_hard_case_visualization.png}
+    \caption{Hard case 01 的波形与频谱可视化}
+    \label{fig:hard_audio_vis}
+\end{figure}
+
+\subsection{训练集与验证集泛化对比}
+
+除验证集和展示样例外，本实验还分别评估了 Easy 和 Hard 模型在训练集与验证集上的表现，结果如表 \ref{tab:train_valid} 和图 \ref{fig:train_valid} 所示。
+
+\begin{table}[H]
+    \centering
+    \caption{训练集与验证集平均指标对比}
+    \label{tab:train_valid}
+    \begin{tabular}{lccc}
+        \toprule
+        数据范围 & SDR\_in / dB & SDR\_out / dB & Delta\_SDR / dB \\
+        \midrule
+        Easy train & 0.012 & 11.064 & 11.053 \\
+        Easy valid & -0.013 & 6.953 & 6.966 \\
+        Hard train & -0.946 & 7.271 & 8.217 \\
+        Hard valid & -0.933 & 1.617 & 2.549 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.88\textwidth]{results_train_valid_comparison.png}
+    \caption{Easy 与 Hard 模型从训练集到验证集的 Delta SDR 泛化落差}
+    \label{fig:train_valid}
+\end{figure}
+
+可以看到，Easy 和 Hard 模型在训练集上的效果都明显优于验证集。Easy 训练集平均 \texttt{Delta\_SDR=11.053 dB}，验证集下降到 \texttt{6.966 dB}；Hard 训练集平均 \texttt{Delta\_SDR=8.217 dB}，验证集下降到 \texttt{2.549 dB}。这说明当前模型已经学到了训练样本中的分离规律，但泛化能力仍然有限，尤其在 Hard 条件下表现更明显。
+
+这一现象需要客观承认。当前模型训练受到个人设备、训练时间和数据规模限制：训练样本数量不大，Hard 数据又同时包含更多说话人、更强重叠和真实噪声，因此验证集上出现性能下降是合理的。另一方面，程序中提供的 Oracle 理想掩码评估说明，该任务在数据层面的理论上限仍然较高。例如 Easy 验证集的 Oracle \texttt{SDR\_out} 约为 \texttt{12.783 dB}，\texttt{Delta\_SDR} 约为 \texttt{12.796 dB}，说明如果掩码预测足够准确，模型仍有较大提升空间。
+
+\subsection{失败案例与改进反思}
+
+本实验在最终形成 Easy 和 Hard 两组结果之前，也经历过若干效果不理想的早期尝试。由于这些尝试发生在实验初期，当时没有完整保留训练日志和音频样例，因此本节主要从实验过程记录和后续改进结果出发进行反思。
+
+第一个失败案例是训练轮数设置过少。实验最初只设置了 50 个 epoch，模型在训练尚未充分收敛时就提前结束。对于双说话人语音分离任务，模型不仅需要学习语音与噪声、说话人与说话人之间的时频差异，还需要在输出通道之间形成稳定的分配关系。如果训练轮数不足，loss 虽然可能已经开始下降，但验证集上的 \texttt{SDR\_out} 和 \texttt{Delta\_SDR} 往往还没有进入较稳定的阶段。后续将训练轮数扩大到 200 个 epoch 后，Easy 模型的最佳验证结果出现在第 100 个 epoch，Hard 模型的最佳验证结果出现在第 165 个 epoch，这说明早期 50 个 epoch 的设置确实不足以观察模型的较优状态。
+
+第二个失败案例是训练音频数量过少。实验最初采用约 \texttt{train40+valid10} 的小规模划分，训练样本覆盖的说话人组合、混合比例和语音内容都很有限，导致模型很容易只记住少量训练样本中的局部规律，而难以学习更通用的分离特征。在这种设置下，即使继续增加训练轮数，模型能够从数据中获得的新信息也很少，验证集指标提升不明显。后续扩大训练和验证样本规模后，模型在 Easy 条件下能够获得更稳定的 SI-SDR 改善，Hard 条件下也能在部分样本上产生较清晰的分离结果。
+
+第三个失败经验是早期缺少理论上限检查和过拟合检查。最初只关注模型输出音频是否“听起来有所分离”，没有同步计算 Oracle 理想掩码结果，也没有比较训练集与验证集上的指标差异。因此，如果算法实现、数据生成或评估流程中存在问题，很难判断是任务本身过难、模型能力不足，还是程序环节存在错误。后续加入 Oracle 评估后，可以确认数据层面的理论上限仍然较高；加入训练集与验证集对比后，也能更清楚地看到当前模型在验证集上的泛化能力有限。这些检查使实验从单纯观察结果转向了更可解释的误差分析，也为后续改进模型结构、增加数据规模和调整训练策略提供了依据。
+
+\subsection{最优与最差样本分析}
+
+完整验证集评估还可以观察模型的稳定性。Easy 验证集中最优样本为 manifest index 26，\texttt{SDR\_out=13.701 dB}，\texttt{Delta\_SDR=13.640 dB}；最差样本为 manifest index 43，\texttt{Delta\_SDR=-3.598 dB}。Hard 验证集中最优样本为 manifest index 31，\texttt{SDR\_out=10.624 dB}，\texttt{Delta\_SDR=11.290 dB}；最差样本为 manifest index 16，\texttt{Delta\_SDR=-11.745 dB}。
+
+这些失败样例说明模型仍存在泛化不足问题。原因包括：两位说话人的音色或频谱分布相近、语音重叠程度过高、环境噪声与语音频段重合、训练样本数量有限等。同时，验证集中也存在分离效果较好的样本。Easy 验证集最优样本达到 \texttt{SDR\_out=13.701 dB}，Hard 验证集最优样本达到 \texttt{SDR\_out=10.624 dB}。这些样例表明，虽然当前模型整体泛化仍有限，但在部分验证样本上已经能够产生较清晰的分离结果，说明实验流程和模型方向是有效的。

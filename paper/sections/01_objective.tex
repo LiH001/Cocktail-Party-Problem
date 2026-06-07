@@ -1,0 +1,22 @@
+\section{实验目的}
+
+鸡尾酒会问题描述的是在多人同时说话或存在环境噪声时，从混合声音中恢复目标说话人语音的任务。本实验围绕双说话人单通道语音盲分离展开：输入为一段单通道混合语音，输出为两路尽可能对应原始说话人的分离语音。
+
+本实验的主要目标如下：
+
+\begin{enumerate}
+    \item \textbf{完成语音分离完整流程}：从真实语音数据准备、混合语音生成、训练集与验证集划分，到模型训练、语音重建和指标评估，形成可复现实验链路。
+    \item \textbf{理解时频域语音分离方法}：使用 STFT 将波形转换到时频域，利用模型预测每个说话人的软掩码，再通过 ISTFT 重建分离后的语音。
+    \item \textbf{实现并验证 BLSTM 分离模型}：采用双向 LSTM 提取时序上下文信息，使用软掩码分支预测两路说话人掩码，并以置换不变的信号逼近损失进行训练。
+    \item \textbf{设计 Easy 与 Hard 对比实验}：Easy 实验用于验证模型在相对简单场景下的分离能力；Hard 实验加入更多说话人和真实环境噪声，用于考察模型在困难条件下的表现变化。
+    \item \textbf{构建 GUI 展示界面}：通过 Streamlit 展示混合语音、参考源、分离结果、波形、频谱和 SI-SDR 指标，使实验结果可以被直观听到和看到。
+\end{enumerate}
+
+图 \ref{fig:pipeline} 展示了本实验的整体流程。该流程以 LibriSpeech 纯净语音为输入，通过数据生成脚本合成双说话人混合语音；模型在 STFT 幅度谱特征上训练，输出软掩码并重建语音；最后使用 SI-SDR 与 Delta SDR 评估分离质量。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{pipeline_diagram.png}
+    \caption{鸡尾酒会语音分离实验流程}
+    \label{fig:pipeline}
+\end{figure}

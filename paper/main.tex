@@ -1,0 +1,113 @@
+\documentclass[a4paper, 12pt]{ctexart}
+
+\usepackage{geometry}
+\geometry{left=2.5cm, right=2.5cm, top=3cm, bottom=3cm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{makecell}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage[hidelinks]{hyperref}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric}
+
+\emergencystretch=3em
+\graphicspath{{images/}}
+
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue!70!black}\bfseries,
+    stringstyle=\color{red!70!black},
+    commentstyle=\color{green!45!black}\itshape,
+    breaklines=true,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    frame=single,
+    backgroundcolor=\color{gray!5},
+    captionpos=b,
+    showstringspaces=false
+}
+
+\title{\textbf{鸡尾酒会语音分离实验报告}}
+\author{姓名：李好 \quad 学号：22920242203269}
+\date{}
+
+\begin{document}
+
+\begin{titlepage}
+	\centering
+	\vspace*{0.5cm} % 【修改】从 1.2cm 缩小到 0.5cm
+	\includegraphics[width=4.5cm]{Xiamen_University_logo.svg.png}
+	\vspace{0.8cm} % 【修改】从 1.3cm 缩小到 0.8cm
+	
+	{\Huge \textbf{艺术认知与计算}\par}
+	\vspace{0.5cm} % 【修改】微调标题间距
+	{\Huge \textbf{实验报告}\par}
+	\vspace{1.2cm} % 【修改】从 2.0cm 缩小到 1.2cm
+	
+	{\Large
+		\renewcommand{\arraystretch}{1.5} % 【修改】行距从 1.8 缩小到 1.5，这能省下很多空间
+		\renewcommand{\arraystretch}{1.5}
+		\begin{tabular}{l l}
+			\makebox[4em][s]{\textbf{实验题目}}： & \underline{\makebox[9cm][c]{\textbf{鸡尾酒会语音分离实验}}} \\
+			\makebox[4em][s]{\textbf{实验内容}}： & \underline{\makebox[9cm][c]{\textbf{双说话人混合语音盲分离}}} \\
+			\makebox[4em][s]{\textbf{专业}}： & \underline{\makebox[9cm][c]{\textbf{人工智能}}} \\
+			\makebox[4em][s]{\textbf{姓名}}： & \underline{\makebox[9cm][c]{\textbf{李好}}} \\
+			\makebox[4em][s]{\textbf{学号}}： & \underline{\makebox[9cm][c]{\textbf{22920242203269}}} \\
+			\makebox[4em][s]{\textbf{实验日期}}： & \underline{\makebox[9cm][c]{\textbf{2026年6月}}} \\
+			\makebox[4em][s]{\textbf{指导教师}}： & \underline{\makebox[9cm][c]{\textbf{吴梅红}}} \\
+		\end{tabular}
+		\par}
+	
+	\vfill
+	{\large 本报告基于 LibriSpeech 语音数据、ESC-50 环境噪声、BLSTM 软掩码分离模型以及 Streamlit GUI 展示系统完成。\par}
+\end{titlepage}
+
+\newpage
+\tableofcontents
+\newpage
+
+\input{sections/01_objective}
+\input{sections/02_data_design}
+\input{sections/03_environment}
+\input{sections/04_model_method}
+\input{sections/05_experiment_results}
+\input{sections/06_gui_design}
+\input{sections/07_summary}
+
+\begin{thebibliography}{9}
+
+\bibitem{panayotov2015librispeech}
+V. Panayotov, G. Chen, D. Povey, and S. Khudanpur.
+\newblock Librispeech: An ASR corpus based on public domain audio books.
+\newblock In \emph{Proceedings of the IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pp. 5206--5210, 2015.
+
+\bibitem{piczak2015esc}
+K. J. Piczak.
+\newblock ESC: Dataset for environmental sound classification.
+\newblock In \emph{Proceedings of the 23rd ACM International Conference on Multimedia}, pp. 1015--1018, 2015.
+
+\bibitem{hershey2016deep}
+J. R. Hershey, Z. Chen, J. Le Roux, and S. Watanabe.
+\newblock Deep clustering: Discriminative embeddings for segmentation and separation.
+\newblock In \emph{Proceedings of the IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pp. 31--35, 2016.
+
+\bibitem{yu2017pit}
+D. Yu, M. Kolb{\ae}k, Z.-H. Tan, and J. Jensen.
+\newblock Permutation invariant training of deep models for speaker-independent multi-talker speech separation.
+\newblock In \emph{Proceedings of the IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pp. 241--245, 2017.
+
+\bibitem{leroux2019sdr}
+J. Le Roux, S. Wisdom, H. Erdogan, and J. R. Hershey.
+\newblock SDR -- half-baked or well done?
+\newblock In \emph{Proceedings of the IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pp. 626--630, 2019.
+
+\end{thebibliography}
+
+\end{document}

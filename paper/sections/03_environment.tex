@@ -1,0 +1,61 @@
+\section{实验环境与配置}
+
+\subsection{硬件与软件环境}
+
+本实验在 Windows 11 环境下完成，使用 Python 运行数据处理、模型训练、评估脚本和 GUI 页面。当前本地环境检测结果如表 \ref{tab:env} 所示。
+
+\begin{table}[H]
+    \centering
+    \caption{实验运行环境}
+    \label{tab:env}
+    \begin{tabular}{ll}
+        \toprule
+        项目 & 配置 \\
+        \midrule
+        操作系统 & Windows 11 \\
+        Python & 3.13.6 \\
+        PyTorch & 2.9.1 + CUDA 12.6 \\
+        CUDA 可用性 & 可用 \\
+        NumPy & 2.4.4 \\
+        soundfile & 0.13.1 \\
+        pandas & 2.3.1 \\
+        matplotlib & 3.10.8 \\
+        Streamlit & 1.56.0 \\
+        LaTeX & TeX Live 2026，XeLaTeX \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+项目依赖较轻，核心依赖写在 \texttt{requirements.txt} 中：
+
+\begin{lstlisting}[language=bash, caption={Python 依赖配置}]
+numpy>=1.24
+torch>=2.0
+soundfile>=0.12
+tqdm>=4.66
+\end{lstlisting}
+
+GUI 和报告图表额外使用了 \texttt{streamlit}、\texttt{pandas} 和 \texttt{matplotlib}。这些库主要用于交互展示和图片生成，不影响核心训练脚本的运行逻辑。
+
+\subsection{代码结构}
+
+项目代码按数据、模型、评估和展示分层组织。图 \ref{fig:code_structure} 展示了主要模块关系。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{code_structure.png}
+    \caption{项目代码结构与数据流}
+    \label{fig:code_structure}
+\end{figure}
+
+主要目录与文件功能如下：
+
+\begin{itemize}
+    \item \texttt{src/cocktail\_separation/audio.py}：负责 WAV 读写、STFT、ISTFT 和幅度归一化；
+    \item \texttt{src/cocktail\_separation/dataset.py}：读取 manifest，构造训练特征、理想掩码和参考源；
+    \item \texttt{src/cocktail\_separation/deep\_clustering.py}：定义 BLSTM 模型、深度聚类损失和软掩码损失；
+    \item \texttt{src/cocktail\_separation/metrics.py}：实现 SI-SDR 和最优排列匹配；
+    \item \texttt{src/train\_deep\_clustering.py}：训练模型并保存 checkpoint 与训练日志；
+    \item \texttt{src/generate\_deep\_clustering\_demo.py}：生成 demo 音频和评估指标；
+    \item \texttt{gui\_app.py}：提供音频播放、频谱展示、自定义分离和指标总览界面。
+\end{itemize}

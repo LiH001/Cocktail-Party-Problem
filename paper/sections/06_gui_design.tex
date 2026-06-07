@@ -1,0 +1,94 @@
+\section{GUI 设计说明}
+
+\subsection{设计目标}
+
+命令行脚本可以完成训练和评估，但实验展示时仅依赖终端输出不够直观。因此项目设计了基于 Streamlit 的 GUI 入口 \texttt{gui\_app.py}。GUI 的目标不是替代训练脚本，而是把已有实验结果组织成可听、可看、可比较的展示界面。
+
+GUI 主要服务于以下场景：
+
+\begin{itemize}
+    \item 快速播放 Easy 与 Hard 的混合语音、参考源和分离结果；
+    \item 对比波形和频谱，观察分离前后的时频结构变化；
+    \item 选择 checkpoint 对单条混合语音或上传音频进行分离；
+    \item 汇总 demo 指标、完整验证集指标和训练日志曲线。
+\end{itemize}
+
+\subsection{页面结构}
+
+GUI 采用侧边栏导航，包含四个页面：
+
+\begin{enumerate}
+    \item \textbf{Demo Compare}：选择 Easy 或 Hard 以及具体 case，播放 \texttt{mixture.wav}、\texttt{source\_1.wav}、\texttt{source\_2.wav}、\texttt{separated\_1.wav} 和 \texttt{separated\_2.wav}，并展示 \texttt{SDR\_in}、\texttt{SDR\_out}、\texttt{Delta\_SDR} 与最优排列。
+    \item \textbf{Waveform And Spectrogram}：对选中音频绘制 waveform 与 spectrogram。该页面用于解释模型如何在时频域中把混合语音拆分为两路输出。
+    \item \textbf{Custom Separation}：选择 \texttt{outputs/*.pt} checkpoint 和项目中的混合 WAV，或上传新的 WAV 文件，运行模型并保存分离结果。
+    \item \textbf{Metrics Overview}：读取 \texttt{metrics.csv}、\texttt{metrics\_all.csv} 和 \texttt{outputs/logs/*.csv}，显示 Easy/Hard 指标表格、柱状图和训练曲线。
+\end{enumerate}
+
+图 \ref{fig:gui_mockup} 给出了 GUI 主页面的结构示意。界面设计优先保证实验数据可读性：左侧为页面导航，主区域展示 case 选择、指标卡片和音频播放器。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{gui_design_mockup.png}
+    \caption{GUI 主页面结构示意}
+    \label{fig:gui_mockup}
+\end{figure}
+
+\subsection{噪声展示设计}
+
+Hard 实验中 mixture 已经加入真实环境噪声，但在 10 dB SNR 条件下，噪声可能被人声部分遮盖，主观听感不一定非常明显。因此 GUI 对 Hard 样例提供两类噪声展示：
+
+\begin{itemize}
+    \item \textbf{Noise Reference}：数据生成时使用的 ESC-50 噪声素材或 demo 目录中保存的噪声片段；
+    \item \textbf{Estimated Noise In Mixture}：由 GUI 根据 \texttt{mixture - source\_1 - source\_2} 估算得到的混合语音中实际噪声成分。
+\end{itemize}
+
+第二类音频会保存到 \texttt{outputs/gui\_noise\_estimates/}。这种设计可以帮助区分“噪声素材本身”和“实际混进语音后的噪声残差”，避免展示时误以为 Hard mixture 没有加入噪声。
+
+GUI 中估计混合语音实际噪声的核心代码如代码 \ref{code:gui_noise} 所示。该方法读取 manifest 中记录的 mixture 和 sources，并通过残差近似得到实际噪声成分。
+
+\begin{lstlisting}[language=Python, caption={GUI 中估计 Hard mixture 实际噪声成分}, label={code:gui_noise}]
+mixture, sr = read_audio(resolve_project_path(manifest_row["mixture"]))
+sources = [
+    read_audio(resolve_project_path(path), sr)[0]
+    for path in manifest_row["sources"]
+]
+n = min([mixture.shape[0], *(source.shape[0] for source in sources)])
+residual = mixture[:n] - np.sum(
+    np.stack([source[:n] for source in sources], axis=0),
+    axis=0,
+)
+sf.write(str(out_path), normalize_peak(residual), sr)
+\end{lstlisting}
+
+自定义分离页面复用了训练脚本保存的 checkpoint。前端选择 checkpoint 和 mixture 后，程序加载模型、计算 STFT、预测掩码并写出两路分离音频，关键流程如代码 \ref{code:gui_separate} 所示。
+
+\begin{lstlisting}[language=Python, caption={GUI 自定义音频分离流程}, label={code:gui_separate}]
+torch, model, ckpt, device, num_speakers = load_model(
+    str(checkpoint), device_preference
+)
+mixture, sample_rate = read_audio(mixture_path)
+spec = stft(mixture, n_fft=int(ckpt["n_fft"]),
+            hop_length=int(ckpt["hop_length"]))
+features = np.log1p(np.abs(spec).astype(np.float32))[None, :, :]
+
+with torch.no_grad():
+    x = torch.as_tensor(features, dtype=torch.float32, device=device)
+    _, predicted_masks = model(x, return_masks=True)
+    masks = predicted_masks[0].detach().cpu().numpy()
+\end{lstlisting}
+
+\subsection{输出目录}
+
+GUI 保持与原实验脚本相同的数据组织方式，不改变已有训练和评估脚本。自定义上传音频保存到：
+
+\begin{center}
+\texttt{outputs/gui\_uploads/}
+\end{center}
+
+GUI 分离结果保存到：
+
+\begin{center}
+\texttt{outputs/gui\_separated/}
+\end{center}
+
+这种目录设计可以避免覆盖原有 demo 音频和训练输出，同时便于后续查看 GUI 交互产生的新结果。

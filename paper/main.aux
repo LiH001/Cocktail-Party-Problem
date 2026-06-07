@@ -1,0 +1,79 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand*\HyPL@Entry[1]{}
+\HyPL@Entry{0<</S/D>>}
+\HyPL@Entry{1<</S/D>>}
+\citation{panayotov2015librispeech}
+\@writefile{toc}{\contentsline {section}{\numberline {1}实验目的}{2}{section.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces 鸡尾酒会语音分离实验流程}}{2}{figure.caption.2}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:pipeline}{{1}{2}{鸡尾酒会语音分离实验流程}{figure.caption.2}{}}
+\citation{piczak2015esc}
+\@writefile{toc}{\contentsline {section}{\numberline {2}数据来源与实验设计}{3}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}数据来源}{3}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}数据生成流程}{3}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Easy 与 Hard 实验设置}{3}{subsection.2.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Easy 与 Hard 数据集设置}}{4}{table.caption.3}\protected@file@percent }
+\newlabel{tab:data_setting}{{1}{4}{Easy 与 Hard 数据集设置}{table.caption.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}实验环境与配置}{4}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}硬件与软件环境}{4}{subsection.3.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces 实验运行环境}}{5}{table.caption.4}\protected@file@percent }
+\newlabel{tab:env}{{2}{5}{实验运行环境}{table.caption.4}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {1}{\ignorespaces Python 依赖配置}}{5}{lstlisting.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}代码结构}{5}{subsection.3.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces 项目代码结构与数据流}}{6}{figure.caption.5}\protected@file@percent }
+\newlabel{fig:code_structure}{{2}{6}{项目代码结构与数据流}{figure.caption.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}模型方法与实现}{6}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}时频特征提取}{6}{subsection.4.1}\protected@file@percent }
+\citation{hershey2016deep}
+\citation{yu2017pit}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}BLSTM 软掩码模型}{7}{subsection.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}置换不变训练损失}{7}{subsection.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}关键代码实现}{8}{subsection.4.4}\protected@file@percent }
+\newlabel{code:mix_noise}{{2}{8}{混合语音和噪声加入逻辑}{lstlisting.2}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2}{\ignorespaces 混合语音和噪声加入逻辑}}{8}{lstlisting.2}\protected@file@percent }
+\newlabel{code:model}{{3}{8}{BLSTM 软掩码模型前向传播}{lstlisting.3}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3}{\ignorespaces BLSTM 软掩码模型前向传播}}{8}{lstlisting.3}\protected@file@percent }
+\newlabel{code:train_loop}{{4}{8}{训练循环中的损失计算与参数更新}{lstlisting.4}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {4}{\ignorespaces 训练循环中的损失计算与参数更新}}{8}{lstlisting.4}\protected@file@percent }
+\citation{leroux2019sdr}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}评估指标}{9}{subsection.4.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}实验结果与评估}{9}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}训练设置与日志分析}{9}{subsection.5.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Easy 与 Hard 模型训练 loss 和验证 SI-SDR 曲线}}{11}{figure.caption.6}\protected@file@percent }
+\newlabel{fig:results_training_curves}{{3}{11}{Easy 与 Hard 模型训练 loss 和验证 SI-SDR 曲线}{figure.caption.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}整体评估结果}{11}{subsection.5.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Easy 与 Hard 实验 SI-SDR 结果}}{11}{table.caption.7}\protected@file@percent }
+\newlabel{tab:metrics_summary}{{3}{11}{Easy 与 Hard 实验 SI-SDR 结果}{table.caption.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Easy 与 Hard 验证集和展示样例 SI-SDR 指标热力矩阵}}{12}{figure.caption.8}\protected@file@percent }
+\newlabel{fig:metrics_summary}{{4}{12}{Easy 与 Hard 验证集和展示样例 SI-SDR 指标热力矩阵}{figure.caption.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}展示样例结果}{12}{subsection.5.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Easy case 01 的波形与频谱可视化}}{13}{figure.caption.9}\protected@file@percent }
+\newlabel{fig:audio_vis}{{5}{13}{Easy case 01 的波形与频谱可视化}{figure.caption.9}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Hard case 01 的波形与频谱可视化}}{14}{figure.caption.10}\protected@file@percent }
+\newlabel{fig:hard_audio_vis}{{6}{14}{Hard case 01 的波形与频谱可视化}{figure.caption.10}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}训练集与验证集泛化对比}{14}{subsection.5.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces 训练集与验证集平均指标对比}}{14}{table.caption.11}\protected@file@percent }
+\newlabel{tab:train_valid}{{4}{14}{训练集与验证集平均指标对比}{table.caption.11}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Easy 与 Hard 模型从训练集到验证集的 Delta SDR 泛化落差}}{15}{figure.caption.12}\protected@file@percent }
+\newlabel{fig:train_valid}{{7}{15}{Easy 与 Hard 模型从训练集到验证集的 Delta SDR 泛化落差}{figure.caption.12}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}失败案例与改进反思}{15}{subsection.5.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6}最优与最差样本分析}{16}{subsection.5.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}GUI 设计说明}{16}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}设计目标}{16}{subsection.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}页面结构}{17}{subsection.6.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces GUI 主页面结构示意}}{17}{figure.caption.13}\protected@file@percent }
+\newlabel{fig:gui_mockup}{{8}{17}{GUI 主页面结构示意}{figure.caption.13}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}噪声展示设计}{18}{subsection.6.3}\protected@file@percent }
+\newlabel{code:gui_noise}{{5}{18}{GUI 中估计 Hard mixture 实际噪声成分}{lstlisting.5}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5}{\ignorespaces GUI 中估计 Hard mixture 实际噪声成分}}{18}{lstlisting.5}\protected@file@percent }
+\newlabel{code:gui_separate}{{6}{18}{GUI 自定义音频分离流程}{lstlisting.6}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {6}{\ignorespaces GUI 自定义音频分离流程}}{18}{lstlisting.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}输出目录}{19}{subsection.6.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}总结与改进方向}{19}{section.7}\protected@file@percent }
+\bibcite{panayotov2015librispeech}{1}
+\bibcite{piczak2015esc}{2}
+\bibcite{hershey2016deep}{3}
+\bibcite{yu2017pit}{4}
+\bibcite{leroux2019sdr}{5}
+\gdef \@abspage@last{22}

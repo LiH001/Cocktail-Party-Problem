@@ -1,0 +1,131 @@
+\section{模型方法与实现}
+
+\subsection{时频特征提取}
+
+语音分离通常在时频域中进行。实验使用短时傅里叶变换（STFT）将一维语音波形转换为复数谱：
+
+\[
+X(t, f) = \mathrm{STFT}(x)
+\]
+
+其中 $t$ 表示时间帧，$f$ 表示频率 bin。模型输入使用混合语音幅度谱的对数特征：
+
+\[
+F(t, f) = \log(1 + |X(t, f)|)
+\]
+
+随后对特征做均值方差标准化，减少不同样本音量差异对训练的影响。模型输出每个说话人的时频掩码 $M_k(t,f)$，再与混合谱相乘得到估计的说话人谱：
+
+\[
+\hat{S}_k(t,f) = M_k(t,f)X(t,f)
+\]
+
+最后通过 ISTFT 将估计谱还原为波形。
+
+\subsection{BLSTM 软掩码模型}
+
+模型主体位于 \texttt{src/cocktail\_separation/deep\_clustering.py}。网络结构采用 BLSTM 作为时序建模模块。BLSTM 能同时利用当前帧前后的上下文信息，对语音这种强时序相关信号更合适。
+
+深度聚类思想最早通过学习时频单元的判别式嵌入来完成说话人分离 \cite{hershey2016deep}。本实验在该思路基础上保留 embedding 分支，同时使用更直接的软掩码分支完成语音重建。模型包含两个输出分支：
+
+\begin{itemize}
+    \item \textbf{Embedding 分支}：输出每个时频单元的嵌入向量，可用于深度聚类损失；
+    \item \textbf{Mask 分支}：输出两个说话人的软掩码，直接用于语音分离。
+\end{itemize}
+
+当前主实验采用 mask 分支训练，设置 \texttt{dc-loss-weight=0.0}、\texttt{mask-loss-weight=1.0}。这样训练目标直接对齐分离后的幅度谱，更容易稳定提升 SI-SDR。
+
+\subsection{置换不变训练损失}
+
+语音分离存在输出顺序不确定问题：模型的第 1 路输出并不一定对应参考源 1。因此训练时使用置换不变训练\cite{yu2017pit}。对两说话人任务，计算两种输出-参考源匹配方式下的损失，并选择较小者作为当前样本损失：
+
+\[
+\mathcal{L} = \min_{\pi \in \mathcal{P}}
+\sum_{k=1}^{K}
+\left\|
+M_k \odot |X| - |S_{\pi(k)}|
+\right\|_2^2
+\]
+
+其中 $\mathcal{P}$ 表示所有说话人排列，$K=2$。该损失避免了人为固定输出顺序导致的训练冲突。
+
+\subsection{关键代码实现}
+
+数据生成阶段的核心是将两个参考源按比例混合，并在 Hard 实验中按指定 SNR 加入真实环境噪声。关键代码如代码 \ref{code:mix_noise} 所示。
+
+\begin{lstlisting}[language=Python, caption={混合语音和噪声加入逻辑}, label={code:mix_noise}]
+source_contribs = np.stack(
+    [args.source1_gain * sources[0], args.source2_gain * sources[1]],
+    axis=0,
+)
+mono_mix, speech_scale = peak_normalize_with_scale(
+    np.sum(source_contribs, axis=0)
+)
+source_contribs = source_contribs * speech_scale
+
+if noise_files:
+    noise_path = Path(rng.choice(noise_files))
+    noise, noise_sr = read_wav_mono(noise_path)
+    noise = resample_linear(noise, noise_sr, args.sample_rate)
+    mono_mix, noisy_scale = peak_normalize_with_scale(
+        add_noise_at_snr(mono_mix, noise, args.snr_db, rng)
+    )
+    source_contribs = source_contribs * noisy_scale
+\end{lstlisting}
+
+模型使用 BLSTM 提取时序上下文，并通过 mask 分支输出两个说话人的时频掩码。代码 \ref{code:model} 展示了模型前向传播的关键部分。
+
+\begin{lstlisting}[language=Python, caption={BLSTM 软掩码模型前向传播}, label={code:model}]
+out, _ = self.blstm(features)
+emb = self.proj(out).reshape(
+    batch, frames * self.freq_bins, self.embedding_dim
+)
+emb = F.normalize(emb, p=2, dim=-1)
+
+mask_logits = self.mask_proj(out).reshape(
+    batch, frames, self.freq_bins, self.num_speakers
+)
+mask_logits = mask_logits.permute(0, 3, 1, 2)
+masks = torch.sigmoid(mask_logits)
+\end{lstlisting}
+
+训练循环中，模型预测掩码后计算置换不变的信号逼近损失，并用 Adam 更新参数。关键代码如代码 \ref{code:train_loop} 所示。
+
+\begin{lstlisting}[language=Python, caption={训练循环中的损失计算与参数更新}, label={code:train_loop}]
+optimizer.zero_grad()
+embeddings, predicted_masks = model(features, return_masks=True)
+mi_loss = mask_inference_loss(
+    predicted_masks, mix_magnitude, source_magnitudes, weights
+)
+loss = args.dc_loss_weight * dc_loss + args.mask_loss_weight * mi_loss
+loss.backward()
+torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5.0)
+optimizer.step()
+\end{lstlisting}
+
+\subsection{评估指标}
+
+实验使用 SI-SDR 衡量分离质量。SI-SDR 在语音分离评估中常用于减少整体缩放差异对指标的影响 \cite{leroux2019sdr}。对估计语音 $\hat{s}$ 和参考语音 $s$，先将估计语音投影到参考语音方向：
+
+\[
+s_{\mathrm{target}} = \frac{\langle \hat{s}, s\rangle}{\|s\|^2}s
+\]
+
+再计算目标成分与误差成分的能量比：
+
+\[
+\mathrm{SI\mbox{-}SDR}
+= 10\log_{10}
+\frac{\|s_{\mathrm{target}}\|^2}
+{\|\hat{s}-s_{\mathrm{target}}\|^2}
+\]
+
+报告中主要使用三个指标：
+
+\begin{itemize}
+    \item \textbf{SDR\_in}：分离前混合语音相对参考源的 SI-SDR；
+    \item \textbf{SDR\_out}：分离后输出语音相对参考源的 SI-SDR；
+    \item \textbf{Delta\_SDR}：$SDR\_out - SDR\_in$，表示分离带来的改善幅度。
+\end{itemize}
+
+评估时同样考虑说话人排列问题，脚本会枚举所有输出和参考源的匹配方式，取平均 SI-SDR 最高的排列作为最终结果。

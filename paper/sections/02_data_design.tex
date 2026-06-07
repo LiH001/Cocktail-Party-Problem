@@ -1,0 +1,53 @@
+\section{数据来源与实验设计}
+
+\subsection{数据来源}
+
+实验语音来源于 LibriSpeech 数据集中的 \texttt{dev-clean} 子集。LibriSpeech 是由有声书语音整理得到的公开英文语音数据集，语音较清晰，适合用于基础语音识别与语音分离实验 \cite{panayotov2015librispeech}。本实验下载文件为：
+
+\begin{center}
+\url{https://www.openslr.org/resources/12/dev-clean.tar.gz}
+\end{center}
+
+Hard 实验中的真实环境噪声来源于 ESC-50 数据集。ESC-50 包含多类真实环境声音，例如风声、车辆声、动物声、室内外背景声等 \cite{piczak2015esc}。实验中从 ESC-50 的音频目录中随机选择噪声片段，并按指定信噪比混入双说话人语音。
+
+\begin{center}
+\url{https://github.com/karolpiczak/ESC-50/archive/refs/heads/master.zip}
+\end{center}
+
+\subsection{数据生成流程}
+
+原始 LibriSpeech 文件为 FLAC 格式。实验首先使用 \texttt{prepare\_librispeech\_clean.py} 将选中的说话人语音转换为单通道 WAV 文件，并整理为按说话人划分的文件夹。随后使用 \texttt{build\_dataset\_manifest.py} 随机抽取两个不同说话人的语音片段，裁剪或补零到统一长度，按指定能量比例混合，并生成如下三类文件：
+
+\begin{itemize}
+    \item \textbf{mixture}：双说话人混合语音；
+    \item \textbf{source}：与混合语音严格对齐的两个参考源贡献；
+    \item \textbf{manifest}：记录混合语音路径、参考源路径、混合比例和噪声路径的 JSONL 文件。
+\end{itemize}
+
+为了保证后续评估中的参考源与混合音频可直接比较，脚本在加入噪声或归一化后会同步缩放参考源贡献。因此，SI-SDR 评估使用的参考源与最终 mixture 处于同一幅度尺度。
+
+\subsection{Easy 与 Hard 实验设置}
+
+本实验设计了 Easy 和 Hard 两组数据，分别对应简单主实验和困难对比实验。设置如表 \ref{tab:data_setting} 所示。
+
+\begin{table}[H]
+    \centering
+    \caption{Easy 与 Hard 数据集设置}
+    \label{tab:data_setting}
+    \begin{tabularx}{\textwidth}{lXX}
+        \toprule
+        项目 & Easy 实验 & Hard 实验 \\
+        \midrule
+        说话人数 & 3 位说话人 & 5 位说话人 \\
+        每人语音数量 & 20 条纯净语音 & 30 条纯净语音 \\
+        混合样本数 & 250 段 & 300 段 \\
+        训练/验证划分 & 200 / 50 & 240 / 60 \\
+        混合比例 & 0.7 : 0.3 & 0.5 : 0.5 \\
+        环境噪声 & 无 & ESC-50 真实噪声 \\
+        默认 SNR & 不适用 & 10 dB \\
+        采样率与时长 & 16000 Hz，5 秒 & 16000 Hz，5 秒 \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+Easy 实验中两个说话人的能量比例为 0.7:0.3，且不加入环境噪声，因此模型更容易学习到稳定的说话人分离规律。Hard 实验中说话人池扩大到 5 人，混合比例改为 0.5:0.5，同时加入真实环境噪声，语音重叠和噪声遮盖都更强，因此更接近复杂听觉环境。

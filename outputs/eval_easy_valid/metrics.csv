@@ -1,4 +1,0 @@
-case,manifest_index,sdr_in_db,sdr_out_db,delta_sdr_db,best_permutation
-case_01_deep_clustering,26,0.06,13.701,13.64,"(0, 1)"
-case_02_deep_clustering,45,-0.031,12.581,12.612,"(0, 1)"
-case_03_deep_clustering,27,-0.096,12.128,12.224,"(0, 1)"
